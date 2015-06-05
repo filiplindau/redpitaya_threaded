@@ -1,0 +1,21 @@
+// Commands for Charge measurement RedPitaya
+
+Command		Argument		Comments			Response
+--------------------------------------------------------------------------------------------------
+getCharge	0-9			seconds (0=last_trig)		counter;no_trigs;charge
+getTrigLvl	N/A			Volts 				Volt 
+setTrigLvl	-0.xxx			Volts 				OK
+getFPGATemp	N/A			Float				Celsius 
+setTrigSrc	RP_TRIG_SRC_CHA_PE 	Channel, EDGE			OK, Argument Syntax Error
+		RP_TRIG_SRC_CHA_NE 
+		RP_TRIG_SRC_CHA_NE 	
+		RP_TRIG_SRC_CHB_PE 	
+		RP_TRIG_SRC_CHB_NE 	
+		RP_TRIG_SRC_EXT_PE 	
+		RP_TRIG_SRC_EXT_NE 
+startCT		N/A			Starts CT measurement
+stopCT		N/A			Stops CT measurement
+getWaveform	CHA/CHB			Stop CT measurement		Samples in Volt	
+
+
+
