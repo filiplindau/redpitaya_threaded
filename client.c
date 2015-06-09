@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
     int i;
     char **tokens;
     size_t numtokens;
-    
+    size_t j;
     struct sockaddr_in serv_addr; 
 
     if(argc != 2)
@@ -105,6 +105,15 @@ int main(int argc, char *argv[])
 	{
 	    tokens=strsplit(recvBuff,";",&numtokens);
 	    printf("Counter: %s Trigs: %s Charge for %ds: %s\n",tokens[0],tokens[1],i,tokens[2]);
+	    for (j=0; j < numtokens; j++) 
+	    {
+		free(tokens[j]);
+	    }
+	    if (tokens != NULL)
+	    {
+		free(tokens);
+	    }
+	
 	}
 
 	i++;
