@@ -21,11 +21,11 @@ CC = $(CROSS_COMPILE)gcc
 #Flags
 CFLAGS = -g -std=gnu99 -Wall
 #Objects
-OBJECTS = ct.o network.o
+OBJECTS = waveform.o network.o
 # List of raw source files (all object files, renamed from .o to .c)
 SRCS = $(subst .o,.c, $(OBJECTS)))
 #Target file
-TARGET = ct
+TARGET = waveform
 
 $(TARGET): $(OBJECTS)
 	$(CC) -o $@ $^ $(CFLAGS) $(RP_LIB_INCLUDE)

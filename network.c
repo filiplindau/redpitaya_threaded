@@ -17,6 +17,7 @@ int listenfd = 0, connfd = 0;
 struct sockaddr_in serv_addr; 
 char sendBuff[1000];
 char client_message[2000];
+char *sString;
 
 extern int triggered;
 extern int free_counter;
@@ -25,7 +26,17 @@ extern float charge[10];
 extern pthread_mutex_t mutex1;
 extern int new_data;
 extern float trig_level;
+extern int32_t trig_delay;
+extern int record_length;
 extern float fpga_temp;
+extern int16_t* buff_ch1_raw;
+extern float* buff_ch1;
+
+extern float max_adc_v_ch1;
+extern int dc_offset_ch1;
+extern float max_adc_v_ch2;
+extern int dc_offset_ch2;
+
 extern rp_acq_trig_src_t trig_source;
 
 
@@ -78,7 +89,7 @@ int SetupSocket_Server()
 
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    serv_addr.sin_port = htons(5000); 
+    serv_addr.sin_port = htons(8888); 
 
     if( bind(listenfd,(struct sockaddr *)&serv_addr , sizeof(serv_addr)) < 0)
     {
@@ -118,7 +129,10 @@ void *Process_Incoming_Commands(void *arg)
     int size;
     char* command;
     char* cmdData;
+    int channel;
     int arg1;
+    float arg_f;
+    int errCode;
     
     //Receive a message from client
     while ((size=recv(connfd , client_message , 2000 , 0))>0)
@@ -152,25 +166,38 @@ void *Process_Incoming_Commands(void *arg)
 	    }
 		
 	}
-	else if (strcmp(command,"getTrigLvl")==0)
+	else if (strcmp(command,"getTriggerLevel")==0)
 	{
 	    size=sprintf(str,"%f",trig_level);
 	    write(connfd,str,size);
 	}  
-	else if (strcmp(command,"setTrigLvl")==0)
+	else if (strcmp(command,"setTriggerLevel")==0)
 	{
-	    arg1 = atof(cmdData);
-	    size=sprintf(str,"New Trig Level Set");
+	    arg_f = atof(cmdData);
+	    rp_AcqSetTriggerLevel(arg_f);
+	    size=sprintf(str,"OK");
 	    write(connfd,str,size);
+	    printf("New trigger level: %.01f V\n", arg_f);
+	}
+	else if (strcmp(command,"setTriggerDelaySamples")==0)
+	{
+	    arg1 = atoi(cmdData);
+	    pthread_mutex_lock( &mutex1 );
+	    trig_delay = arg1;
+//	    errCode = rp_AcqSetTriggerDelay(arg1);
+	    pthread_mutex_unlock( &mutex1 );
+	    size=sprintf(str,"OK");
+	    write(connfd,str,size);
+	    printf("New trigger delay: %7d samples, return code %7d\n", arg1, errCode);
 	}
 	else if (strcmp(command,"getFPGATemp")==0)
 	{
 	    size=sprintf(str,"%.01f",fpga_temp);
 	    write(connfd,str,size);
 	}
-	else if (strcmp(command,"setTrigSrc")==0)
+	else if (strcmp(command,"setTriggerSource")==0)
 	{
-	    	if (strcmp(cmdData,"RP_TRIG_SRC_CHA_PE")==0)
+	    if (strcmp(cmdData,"RP_TRIG_SRC_CHA_PE")==0)
 		{
 		    size=sprintf(str,"OK");
 		    write(connfd,str,size);
@@ -220,8 +247,101 @@ void *Process_Incoming_Commands(void *arg)
 		}
 
 	}
+	else if (strcmp(command,"getCalibrationMaxADC")==0)
+	{
+		if (strcmp(cmdData, "0") == 0)
+		{
+			// Channel 1:
+			printf("Calibration max ADC %7f\n", max_adc_v_ch1);
+			sString = (char *) &max_adc_v_ch1;
+			write(connfd , sString , sizeof(float));
+		}
+		else
+		{		
+			// Channel 2:
+			printf("Calibration max ADC %7f\n", max_adc_v_ch2);
+			sString = (char *) &max_adc_v_ch2;
+			write(connfd , sString , sizeof(float));
+		}
+
+	}
+	else if (strcmp(command,"getCalibrationOffset")==0)
+	{
+		if (strcmp(cmdData, "0") == 0)
+		{
+			// Channel 1:
+				printf("Calibration offset %7d\n", dc_offset_ch1);
+				sString = (char *) &dc_offset_ch1;
+				write(connfd , sString , sizeof(int));
+		}
+		else
+		{		
+			// Channel 2:
+				printf("Calibration offset %7d\n", dc_offset_ch2);
+				sString = (char *) &dc_offset_ch2;
+				write(connfd , sString , sizeof(int));
+		}
+
+	}
+
 	else if (strcmp(command,"getWaveform")==0)
 	{
+		channel = atoi(cmdData);
+//		printf("getWaveform %7d\n", channel);
+		switch(channel){
+			case 0:
+				if (new_data == 1) {
+					new_data = 0;
+					pthread_mutex_lock( &mutex1 );
+					sString = (char *) buff_ch1_raw;
+//					printf("Writing channel 1, size %7d", size);
+					// Need to send record_length+1 words because the first word is the header
+					// containing the number of words
+					write(connfd, sString , sizeof(int16_t)*(record_length+1));
+					pthread_mutex_unlock( &mutex1 );
+//					printf("...done");
+					break;
+				}
+				else {
+					write(connfd, "not triggered" , 13);
+					break;
+				}
+			case 1:
+				write(connfd, "not triggered" , 13);
+				break;
+		}
+
+	    // Todo, stop ct, return measurements
+	    // size=sprintf(str,"%.01f",fpga_temp);
+	    // write(connfd,str,size);
+	}
+	else if (strcmp(command,"getWaveformFloat")==0)
+	{
+		channel = atoi(cmdData);
+//		printf("getWaveform %7d\n", channel);
+		switch(channel){
+			case 0:
+				if (new_data == 1) {
+					new_data = 0;
+					pthread_mutex_lock( &mutex1 );
+					sString = (char *) buff_ch1;
+					printf("Writing channel 1, size %7d", size);
+					// Need to send record_length+1 words because the first word is the header
+					// containing the number of words
+					write(connfd, sString , sizeof(float)*(record_length+1));
+					pthread_mutex_unlock( &mutex1 );
+					printf("...done");
+					break;
+				}
+				else {
+					write(connfd, "not triggered" , 13);
+					break;
+				}
+			case 1:
+				write(connfd, "not triggered" , 13);
+				break;
+		}
+
 	    // Todo, stop ct, return measurements
 	    // size=sprintf(str,"%.01f",fpga_temp);
 	    // write(connfd,str,size);
