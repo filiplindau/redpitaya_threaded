@@ -376,12 +376,12 @@ void *Process_Incoming_Commands(void *arg)
 					pthread_mutex_lock( &mutex1 );
 					size = record_length + 2;
 					sString = (char *) buff_ch1;
-//					printf("Writing channel 1, size %7d", size);
+					printf("Writing channel 1, size %7d", size);
 					// Need to send record_length+1 words because the first word is the header
 					// containing the number of words
 					write(connfd, sString , sizeof(float)*(record_length+2));
 					pthread_mutex_unlock( &mutex1 );
-//					printf("...done\n");
+					printf("...done\n");
 					break;
 				}
 				else {

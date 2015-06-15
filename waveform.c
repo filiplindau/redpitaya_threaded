@@ -282,6 +282,7 @@ void *read_waveform_data(void *arg)
 			rp_AcqGetTriggerDelay(&decimated_data_num);
 //			printf("Trigger position: %7d\n", trig_pos);
 //			printf("Read trigger delay: %7d\n", decimated_data_num);
+			printf("Record length: %7d\n", record_length);
 
 //			rp_AcqGetDataPosV(RP_CH_1,0,(RP_BUF_SIZE-1),buff_ch1,&buff_size2);			// Get entire buffer 
 
