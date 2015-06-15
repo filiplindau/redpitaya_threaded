@@ -332,7 +332,7 @@ void *Process_Incoming_Commands(void *arg)
 					// containing the number of words
 					write(connfd, sString , sizeof(float)*(record_length+2));
 					pthread_mutex_unlock( &mutex1 );
-					printf("...done");
+					printf("...done\n");
 					break;
 				}
 				else {
@@ -348,7 +348,7 @@ void *Process_Incoming_Commands(void *arg)
 				// containing the number of words
 				write(connfd, sString , sizeof(float)*(record_length+2));
 				pthread_mutex_unlock( &mutex1 );
-				printf("...done");
+				printf("...done\n");
 				break;
 		}
 
