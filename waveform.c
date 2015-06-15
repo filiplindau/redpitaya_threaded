@@ -181,9 +181,13 @@ void *read_waveform_data(void *arg)
     
     // Raw waveform variables
     int32_t decimated_data_num;
+
+    float* tmpData;
     
     buff_ch1 = (float*)malloc(buff_size * sizeof(float));
+    tmpData = (float*)malloc(100000*sizeof(float));
     buff_ch2 = (float*)malloc(buff_size * sizeof(float));
+  
     // Pointer to first data sample (first position is header with number of samples):
     float* buff_ch1_offset;
 	float* buff_ch2_offset;
@@ -366,6 +370,7 @@ void *read_waveform_data(void *arg)
 
 	free(buff_ch1);
 	free(buff_ch2);
+	free(tmpData);
 	printf("free");
 	rp_Release();
 	printf("release");
