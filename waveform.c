@@ -354,7 +354,7 @@ void *read_waveform_data(void *arg)
 					buff_filled_size = RP_BUF_SIZE;
 					error_code=rp_AcqGetDataPosV(RP_CH_1, start_pos, end_pos, buff_ch1_offset, &buff_filled_size);
 					buff_filled_size = RP_BUF_SIZE;
-//					error_code=rp_AcqGetDataPosV(RP_CH_2, start_pos, end_pos, buff_ch2_offset, &buff_filled_size);
+					error_code=rp_AcqGetDataPosV(RP_CH_2, start_pos, end_pos, buff_ch2_offset, &buff_filled_size);
 				}				
 			}
 
