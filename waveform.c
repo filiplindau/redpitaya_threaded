@@ -326,7 +326,7 @@ void *read_waveform_data(void *arg)
 						printf("tmpLength %7d\n", tmpLength);
 					}
 					buff_filled_size = tmpLength;
-//					error_code=rp_AcqGetDataPosV(RP_CH_2, start_pos, end_pos, buff_ch2_offset, &buff_filled_size);
+					error_code=rp_AcqGetDataPosV(RP_CH_2, start_pos, end_pos, buff_ch2_offset, &buff_filled_size);
 					
 					end_pos = record_length - tmpLength - 1;
 					start_pos = 0;
@@ -340,8 +340,8 @@ void *read_waveform_data(void *arg)
 						printf("end_pos %7d\n", end_pos);
 						printf("tmpLength %7d\n", tmpLength);
 					}
-					buff_filled_size = RP_BUF_SIZE;
-//					error_code=rp_AcqGetDataPosV(RP_CH_2, start_pos, end_pos, buff_ch2_offset + buff_filled_size, &buff_filled_size);
+					buff_filled_size = tmpLength;
+					error_code=rp_AcqGetDataPosV(RP_CH_2, start_pos, end_pos, buff_ch2_offset + new_ch1_offset, &buff_filled_size);
 				}
 				else
 				// The waveform is completely within the ring buffer:
