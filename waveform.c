@@ -270,8 +270,8 @@ void *read_waveform_data(void *arg)
 			// Read trigger parameters
 			rp_AcqGetWritePointerAtTrig(&trig_pos);						
 			rp_AcqGetTriggerDelay(&decimated_data_num);
-			printf("buff_ch1_offset: %ld\n", (long)buff_ch1_offset);
-			printf("buff_ch2_offset: %ld\n", (long)buff_ch2_offset);
+			printf("buff_ch1_offset: %lu\n", (long)buff_ch1_offset);
+			printf("buff_ch2_offset: %lu\n", (long)buff_ch2_offset);
 //			printf("Trigger position: %7d\n", trig_pos);
 //			printf("Read trigger delay: %7d\n", decimated_data_num);
 
@@ -327,7 +327,7 @@ void *read_waveform_data(void *arg)
 					buff_filled_size = RP_BUF_SIZE;
 					error_code=rp_AcqGetDataPosV(RP_CH_1, start_pos, end_pos, buff_ch1_offset, &buff_filled_size);
 					buff_filled_size = RP_BUF_SIZE;
-					error_code=rp_AcqGetDataPosV(RP_CH_2, start_pos, end_pos, buff_ch2_offset, &buff_filled_size);
+//					error_code=rp_AcqGetDataPosV(RP_CH_2, start_pos, end_pos, buff_ch2_offset, &buff_filled_size);
 				}				
 			}
 
