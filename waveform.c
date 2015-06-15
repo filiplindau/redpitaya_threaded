@@ -256,6 +256,9 @@ void *read_waveform_data(void *arg)
     free_counter=0;
     heart_beat_state=RP_LOW;
 
+	printf("buff_ch1_offset: %lu\n", (long)buff_ch1_offset);
+	printf("buff_ch2_offset: %lu\n", (long)buff_ch2_offset);
+
 	while(fpga_running == true)
 	{
 	    // Check for trig
@@ -274,8 +277,6 @@ void *read_waveform_data(void *arg)
 			// Read trigger parameters
 			rp_AcqGetWritePointerAtTrig(&trig_pos);						
 			rp_AcqGetTriggerDelay(&decimated_data_num);
-			printf("buff_ch1_offset: %lu\n", (long)buff_ch1_offset);
-			printf("buff_ch2_offset: %lu\n", (long)buff_ch2_offset);
 //			printf("Trigger position: %7d\n", trig_pos);
 //			printf("Read trigger delay: %7d\n", decimated_data_num);
 
@@ -292,14 +293,14 @@ void *read_waveform_data(void *arg)
 				end_pos = RP_BUF_SIZE - 1;
 				buff_filled_size = RP_BUF_SIZE;
 //				error_code=rp_AcqGetDataPosRaw(RP_CH_1, start_pos, end_pos, buff_ch1_raw_offset, &buff_filled_size);
-				error_code=rp_AcqGetDataPosV(RP_CH_1,start_pos, end_pos, buff_ch1_offset, &buff_filled_size);
+//				error_code=rp_AcqGetDataPosV(RP_CH_1,start_pos, end_pos, buff_ch1_offset, &buff_filled_size);
 				buff_filled_size = RP_BUF_SIZE;
 //				error_code=rp_AcqGetDataPosV(RP_CH_2,start_pos, end_pos, buff_ch2_offset, &buff_filled_size);
 				
 				end_pos = end_pos - start_pos - 1;
 				start_pos = 0;
 				buff_filled_size = RP_BUF_SIZE;
-				error_code=rp_AcqGetDataPosV(RP_CH_1, start_pos, end_pos, buff_ch1_offset + buff_filled_size, &buff_filled_size);
+//				error_code=rp_AcqGetDataPosV(RP_CH_1, start_pos, end_pos, buff_ch1_offset + buff_filled_size, &buff_filled_size);
 				buff_filled_size = RP_BUF_SIZE;
 //				error_code=rp_AcqGetDataPosV(RP_CH_2, start_pos, end_pos, buff_ch2_offset + buff_filled_size, &buff_filled_size);
 			}
@@ -312,7 +313,7 @@ void *read_waveform_data(void *arg)
 					start_pos = RP_BUF_SIZE + end_pos - record_length;
 					end_pos = RP_BUF_SIZE - 1;
 					buff_filled_size = RP_BUF_SIZE;
-					error_code=rp_AcqGetDataPosV(RP_CH_1, start_pos, end_pos, buff_ch1_offset, &buff_filled_size);
+//					error_code=rp_AcqGetDataPosV(RP_CH_1, start_pos, end_pos, buff_ch1_offset, &buff_filled_size);
 					buff_filled_size = RP_BUF_SIZE;
 //					error_code=rp_AcqGetDataPosV(RP_CH_2, start_pos, end_pos, buff_ch2_offset, &buff_filled_size);
 					
@@ -320,7 +321,7 @@ void *read_waveform_data(void *arg)
 					start_pos = 0;
 					buff_filled_size = RP_BUF_SIZE;
 //					error_code=rp_AcqGetDataPosV(RP_CH_1, start_pos, end_pos, buff_ch1_offset + buff_filled_size*sizeof(int16_t), &buff_filled_size);
-					error_code=rp_AcqGetDataPosV(RP_CH_1, start_pos, end_pos, buff_ch1_offset + buff_filled_size, &buff_filled_size);
+//					error_code=rp_AcqGetDataPosV(RP_CH_1, start_pos, end_pos, buff_ch1_offset + buff_filled_size, &buff_filled_size);
 					buff_filled_size = RP_BUF_SIZE;
 //					error_code=rp_AcqGetDataPosV(RP_CH_2, start_pos, end_pos, buff_ch2_offset + buff_filled_size, &buff_filled_size);
 				}
@@ -384,6 +385,7 @@ void *read_waveform_data(void *arg)
 
 void *Read_CT_Data(void *arg)
 {
+    printf("Entering Read_CT_Data");
     rp_pinState_t heart_beat_state; 
     uint32_t buff_size = RP_BUF_SIZE;
     uint32_t trig_pos;
