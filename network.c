@@ -31,6 +31,7 @@ extern int record_length;
 extern float fpga_temp;
 extern int16_t* buff_ch1_raw;
 extern float* buff_ch1;
+extern float* buff_ch2;
 
 extern float max_adc_v_ch1;
 extern int dc_offset_ch1;
@@ -338,7 +339,14 @@ void *Process_Incoming_Commands(void *arg)
 					break;
 				}
 			case 1:
-				write(connfd, "not triggered" , 13);
+				pthread_mutex_lock( &mutex1 );
+				sString = (char *) buff_ch2;
+				printf("Writing channel 1, size %7d", size);
+				// Need to send record_length+1 words because the first word is the header
+				// containing the number of words
+				write(connfd, sString , sizeof(float)*(record_length+1));
+				pthread_mutex_unlock( &mutex1 );
+				printf("...done");
 				break;
 		}
 

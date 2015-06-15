@@ -46,6 +46,7 @@ int dc_offset_ch2;
 
 int16_t* buff_ch1_raw;
 float* buff_ch1;
+float* buff_ch2;
 
 rp_acq_trig_src_t trig_source=RP_TRIG_SRC_CHA_NE;
 
@@ -182,9 +183,12 @@ void *read_waveform_data(void *arg)
     int32_t decimated_data_num;
     
     buff_ch1 = (float*)malloc(buff_size * sizeof(float));
+	buff_ch2 = (float*)malloc(buff_size * sizeof(float));
     // Pointer to first data sample (first position is header with number of samples):
     float* buff_ch1_offset;
+	float* buff_ch2_offset;
     buff_ch1_offset = buff_ch1 + sizeof(float);
+	buff_ch2_offset = buff_ch2 + sizeof(float);
 	uint32_t start_pos;
 	uint32_t end_pos;
 	uint32_t buff_filled_size;
@@ -282,11 +286,13 @@ void *read_waveform_data(void *arg)
 				buff_filled_size = end_pos - start_pos + 1;
 //				error_code=rp_AcqGetDataPosRaw(RP_CH_1, start_pos, end_pos, buff_ch1_raw_offset, &buff_filled_size);
 				error_code=rp_AcqGetDataPosV(RP_CH_1,start_pos, end_pos, buff_ch1_offset, &buff_filled_size);
+				error_code=rp_AcqGetDataPosV(RP_CH_2,start_pos, end_pos, buff_ch2_offset, &buff_filled_size);
 				
 				start_pos = 0;
 				end_pos = record_length - buff_filled_size - 1;
 				buff_filled_size = end_pos - start_pos + 1;
-				error_code=rp_AcqGetDataPosV(RP_CH_1, start_pos, end_pos, buff_ch1_offset + buff_filled_size*sizeof(int16_t), &buff_filled_size);
+				error_code=rp_AcqGetDataPosV(RP_CH_1, start_pos, end_pos, buff_ch1_offset + buff_filled_size*sizeof(float), &buff_filled_size);
+				error_code=rp_AcqGetDataPosV(RP_CH_2, start_pos, end_pos, buff_ch2_offset + buff_filled_size*sizeof(float), &buff_filled_size);
 			}
 			else
 			// The end point is within the end of the ring buffer:
@@ -297,12 +303,15 @@ void *read_waveform_data(void *arg)
 					start_pos = RP_BUF_SIZE + end_pos - record_length;
 					end_pos = RP_BUF_SIZE - 1;
 					buff_filled_size = end_pos - start_pos + 1;
-					error_code=rp_AcqGetDataPosV(RP_CH_1, start_pos, end_pos, buff_ch1_offset, &buff_filled_size);					
+					error_code=rp_AcqGetDataPosV(RP_CH_1, start_pos, end_pos, buff_ch1_offset, &buff_filled_size);
+					error_code=rp_AcqGetDataPosV(RP_CH_2, start_pos, end_pos, buff_ch2_offset, &buff_filled_size);
 					
 					start_pos = 0;
 					end_pos = record_length - buff_filled_size - 1;
 					buff_filled_size = end_pos - start_pos + 1;
-					error_code=rp_AcqGetDataPosV(RP_CH_1, start_pos, end_pos, buff_ch1_offset + buff_filled_size*sizeof(int16_t), &buff_filled_size);
+//					error_code=rp_AcqGetDataPosV(RP_CH_1, start_pos, end_pos, buff_ch1_offset + buff_filled_size*sizeof(int16_t), &buff_filled_size);
+					error_code=rp_AcqGetDataPosV(RP_CH_1, start_pos, end_pos, buff_ch1_offset + buff_filled_size*sizeof(float), &buff_filled_size);
+					error_code=rp_AcqGetDataPosV(RP_CH_2, start_pos, end_pos, buff_ch2_offset + buff_filled_size*sizeof(float), &buff_filled_size);
 				}
 				else
 				// The waveform is completely within the ring buffer:
@@ -310,11 +319,13 @@ void *read_waveform_data(void *arg)
 					start_pos = end_pos - record_length;
 					buff_filled_size = end_pos - start_pos + 1;
 					error_code=rp_AcqGetDataPosV(RP_CH_1, start_pos, end_pos, buff_ch1_offset, &buff_filled_size);
+					error_code=rp_AcqGetDataPosV(RP_CH_2, start_pos, end_pos, buff_ch2_offset, &buff_filled_size);
 				}				
 			}
 
 			
 			buff_ch1[0] = (float)record_length;
+			buff_ch2[0] = (float)record_length;
 			new_data = 1;
 			free_counter++;
 //			printf("%f %f %f %f %f\n", buff_ch1[1], buff_ch1[2], buff_ch1[3], buff_ch1[4], buff_ch1[5]);
@@ -344,6 +355,7 @@ void *read_waveform_data(void *arg)
 
 
 	free(buff_ch1);
+	free(buff_ch2);
 	printf("free");
 	rp_Release();
 	printf("release");
