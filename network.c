@@ -134,6 +134,7 @@ void *Process_Incoming_Commands(void *arg)
     int arg1;
     float arg_f;
     int errCode;
+    rp_acq_decimation_t decimation;
     
     //Receive a message from client
     while ((size=recv(connfd , client_message , 2000 , 0))>0)
@@ -179,6 +180,54 @@ void *Process_Incoming_Commands(void *arg)
 	    size=sprintf(str,"OK");
 	    write(connfd,str,size);
 	    printf("New trigger level: %.01f V\n", arg_f);
+	}
+	else if (strcmp(command,"setRecordLength")==0)
+	{
+	    arg1 = atoi(cmdData);
+	    pthread_mutex_lock( &mutex1 );
+	    record_length = arg1;
+	    size=sprintf(str,"OK");
+	    pthread_mutex_unlock( &mutex1 );
+	    write(connfd,str,size);
+	    printf("New record length: %7d\n", arg1);
+	}
+	else if (strcmp(command,"setDecimation")==0)
+	{
+	    arg1 = atoi(cmdData);
+	    if (arg1 == 0) 
+	    {
+		decimation = RP_DEC_1;
+	    }
+	    else if (arg1 == 1) 
+	    {
+		decimation = RP_DEC_8;
+	    }
+	    else if (arg1 == 2) 
+	    {
+		decimation = RP_DEC_64;
+	    }
+	    else if (arg1 == 3) 
+	    {
+		decimation = RP_DEC_1024;
+	    }
+	    else if (arg1 == 4) 
+	    {
+		decimation = RP_DEC_8192;
+	    }
+	    else if (arg1 == 5) 
+	    {
+		decimation = RP_DEC_65536;
+	    }
+	    else
+	    {
+		decimation = RP_DEC_1;
+	    }
+	    pthread_mutex_lock( &mutex1 );
+	    rp_AcqSetDecimation(decimation);
+	    pthread_mutex_unlock( &mutex1 );
+	    size=sprintf(str,"OK");
+	    write(connfd,str,size);
+	    printf("New decimation: %7d\n", arg1);
 	}
 	else if (strcmp(command,"setTriggerDelaySamples")==0)
 	{
