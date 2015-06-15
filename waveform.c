@@ -318,6 +318,9 @@ void *read_waveform_data(void *arg)
 					error_code=rp_AcqGetDataPosV(RP_CH_1, start_pos, end_pos, buff_ch1_offset, &buff_filled_size);
 					if (error_code != RP_OK) {
 						printf("Error AcqGetDataPosV: %7d\n", error_code);
+						printf("start_pos %7d\n", start_pos);
+						printf("end_pos %7d\n", end_pos);
+						printf("tmpLength %7d\n", tmpLength);
 					}
 					buff_filled_size = tmpLength;
 //					error_code=rp_AcqGetDataPosV(RP_CH_2, start_pos, end_pos, buff_ch2_offset, &buff_filled_size);
@@ -330,6 +333,9 @@ void *read_waveform_data(void *arg)
 					error_code=rp_AcqGetDataPosV(RP_CH_1, start_pos, end_pos, buff_ch1_offset + buff_filled_size, &buff_filled_size);
 					if (error_code != RP_OK) {
 						printf("Error AcqGetDataPosV: %7d\n", error_code);
+						printf("start_pos %7d\n", start_pos);
+						printf("end_pos %7d\n", end_pos);
+						printf("tmpLength %7d\n", tmpLength);
 					}
 					buff_filled_size = RP_BUF_SIZE;
 //					error_code=rp_AcqGetDataPosV(RP_CH_2, start_pos, end_pos, buff_ch2_offset + buff_filled_size, &buff_filled_size);
