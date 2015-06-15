@@ -170,9 +170,9 @@ int main(int argc, char **argv)
 
 void *read_waveform_data(void *arg)   
 {
-	int error_code;
+    int error_code;
     rp_pinState_t heart_beat_state; 
-    uint32_t buff_size = RP_BUF_SIZE + 1;
+    uint32_t buff_size = RP_BUF_SIZE + 2;
     uint32_t buff_size2 = RP_BUF_SIZE;
     uint32_t trig_pos;
 
@@ -183,12 +183,13 @@ void *read_waveform_data(void *arg)
     int32_t decimated_data_num;
     
     buff_ch1 = (float*)malloc(buff_size * sizeof(float));
-	buff_ch2 = (float*)malloc(buff_size * sizeof(float));
+    buff_ch2 = (float*)malloc(buff_size * sizeof(float));
     // Pointer to first data sample (first position is header with number of samples):
     float* buff_ch1_offset;
 	float* buff_ch2_offset;
-    buff_ch1_offset = buff_ch1 + sizeof(float);
-	buff_ch2_offset = buff_ch2 + sizeof(float);
+    buff_ch1_offset = buff_ch1 + 2*sizeof(float);
+	buff_ch2_offset = buff_ch2 + 2*sizeof(float);
+	// First two numbers are header: read length and trigger counter
 	uint32_t start_pos;
 	uint32_t end_pos;
 	uint32_t buff_filled_size;
@@ -325,7 +326,9 @@ void *read_waveform_data(void *arg)
 
 			
 			buff_ch1[0] = (float)record_length;
+			buff_ch1[1] = (float)free_counter;
 			buff_ch2[0] = (float)record_length;
+			buff_ch2[1] = (float)free_counter;
 			new_data = 1;
 			free_counter++;
 //			printf("%f %f %f %f %f\n", buff_ch1[1], buff_ch1[2], buff_ch1[3], buff_ch1[4], buff_ch1[5]);
