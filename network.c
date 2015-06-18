@@ -27,6 +27,8 @@ extern pthread_mutex_t mutex1;
 extern int new_data;
 extern float trig_level;
 extern int32_t trig_delay;
+extern int16_t trig_mode;
+extern int16_t trig_mode_init;
 extern int record_length;
 extern float fpga_temp;
 extern int16_t* buff_ch1_raw;
@@ -190,6 +192,17 @@ void *Process_Incoming_Commands(void *arg)
 	    pthread_mutex_unlock( &mutex1 );
 	    write(connfd,str,size);
 	    printf("New record length: %7d\n", arg1);
+	}
+	else if (strcmp(command,"setTriggerMode")==0)
+	{
+	    arg1 = atoi(cmdData);
+	    pthread_mutex_lock( &mutex1 );
+	    trig_mode = arg1;
+	    trig_mode_init = 1;
+	    size=sprintf(str,"OK");
+	    pthread_mutex_unlock( &mutex1 );
+	    write(connfd,str,size);
+	    printf("New trigger mode: %7d\n", arg1);
 	}
 	else if (strcmp(command,"setDecimation")==0)
 	{
@@ -428,6 +441,7 @@ void *Process_Incoming_Commands(void *arg)
     printf("Client disconnected\n");
     fflush(stdout);
     close(connfd);
+    pthread_mutex_unlock( &mutex1 );
     return NULL;
     
 }

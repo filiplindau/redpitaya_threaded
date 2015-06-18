@@ -36,6 +36,12 @@ int num_data_points_before_trig=10;
 int num_data_points_after_trig=100;
 int16_t record_length=8192;
 int32_t trig_delay=1000;
+int16_t trig_mode = 0;
+int16_t trig_mode_init = 0;
+// trig_mode = 0: NORMAL
+// trig_mode = 1: SINGLE
+// trig_mode = 2: FORCE TRIG
+// trig_mode = 3: DISABLED
 float trig_level=0.2;
 float fpga_temp;
 
@@ -47,6 +53,25 @@ int dc_offset_ch2;
 int16_t* buff_ch1_raw;
 float* buff_ch1;
 float* buff_ch2;
+
+int32_t decimated_data_num;
+
+float* tmpData;
+
+
+// Pointer to first data sample (first position is header with number of samples):
+float* buff_ch1_offset;
+float* buff_ch2_offset;
+// First two numbers are header: read length and trigger counter
+uint32_t start_pos;
+uint32_t end_pos;
+uint32_t buff_filled_size;
+uint32_t tmpLength;
+uint32_t new_ch1_offset;
+uint32_t new_ch2_offset;
+int error_code;
+uint32_t trig_pos;
+
 
 rp_acq_trig_src_t trig_source=RP_TRIG_SRC_CHA_NE;
 
@@ -170,36 +195,18 @@ int main(int argc, char **argv)
 
 void *read_waveform_data(void *arg)   
 {
-    int error_code;
     rp_pinState_t heart_beat_state; 
     uint32_t buff_size = RP_BUF_SIZE + 2;
     uint32_t buff_size2 = RP_BUF_SIZE;
-    uint32_t trig_pos;
 
 	// CT calculations varaibles
     clock_t start_time, diff;
-    
-    // Raw waveform variables
-    int32_t decimated_data_num;
 
-    float* tmpData;
-    
-    buff_ch1 = (float*)malloc(buff_size * sizeof(float));
-    buff_ch2 = (float*)malloc(buff_size * sizeof(float));
-  
-    // Pointer to first data sample (first position is header with number of samples):
-    float* buff_ch1_offset;
-	float* buff_ch2_offset;
-    buff_ch1_offset = buff_ch1 + 2;
+	buff_ch1 = (float*)malloc(buff_size * sizeof(float));
+	buff_ch2 = (float*)malloc(buff_size * sizeof(float));
+	buff_ch1_offset = buff_ch1 + 2;
 	buff_ch2_offset = buff_ch2 + 2;
-	// First two numbers are header: read length and trigger counter
-	uint32_t start_pos;
-	uint32_t end_pos;
-	uint32_t buff_filled_size;
-	uint32_t tmpLength;
-	uint32_t new_ch1_offset;
-	uint32_t new_ch2_offset;
-    
+        
     new_data=0;
     
     /* Print error, if rp_Init() function failed */
@@ -230,20 +237,13 @@ void *read_waveform_data(void *arg)
 		printf("Acquire reset failed!\n");
 		//write(client_sock , "Acquire reset error" , 19);
 	}
-    //rp_AcqSetDecimation(RP_DEC_8 );
     rp_AcqSetSamplingRate(RP_SMP_125M);
-    //rp_AcqSetSamplingRate(RP_SMP_15_625M);
     rp_AcqSetTriggerLevel(trig_level); //Trig level is set in Volts while in SCPI is set in mV
-//    rp_AcqSetTriggerDelayNs(0);
     error_code = rp_AcqSetTriggerDelay(trig_delay); 	
     printf("Setting trigger delay %7d, returned %7d\n", trig_delay, error_code);
-    //rp_AcqSetTriggerDelay(0);
-    //rp_AcqSetAveraging(true);
 	
     rp_AcqStart();
 
-    //rp_AcqSetTriggerSrc(RP_TRIG_SRC_EXT_PE);
-    //rp_AcqSetTriggerSrc(RP_TRIG_SRC_CHA_NE);			// Trig on signal
     rp_AcqSetTriggerSrc(trig_source);			
     rp_acq_trig_state_t state = RP_TRIG_STATE_TRIGGERED;
 
@@ -263,15 +263,100 @@ void *read_waveform_data(void *arg)
 
 	while(fpga_running == true)
 	{
-	    // Check for trig
+	    usleep(10);
 	    
+	    // Check for trig		
 		rp_AcqGetTriggerState(&state);
+		
+		pthread_mutex_lock( &mutex1 );
+		if(trig_mode == 0)
+		{
+			// Normal trig
+			if(trig_mode_init == 1)
+			{				
+				trig_mode_init = 0;
+				// Restart trig				
+				rp_AcqReset();
+				error_code = rp_AcqSetTriggerDelay(trig_delay); 	
+				rp_AcqStart();
+				rp_AcqSetTriggerSrc(trig_source);
+			}
+			else
+			{
+				if(state == RP_TRIG_STATE_TRIGGERED)
+				{
+					triggered=1;
+					rp_DpinSetState( RP_LED4, RP_HIGH);
+					
+					// Get data
+					read_fpga_data();
+
+					rp_DpinSetState( RP_LED4, RP_LOW);
+					new_data = 1;				
+					
+					// Restart trig				
+					error_code = rp_AcqSetTriggerDelay(trig_delay); 	
+					rp_AcqStart();
+					rp_AcqSetTriggerSrc(trig_source);
+				}
+			}
+		} 		
+		else if(trig_mode == 1)	
+		{
+			// Single trig
+			if(trig_mode_init == 1)
+			{				
+				trig_mode_init = 0;
+				// Restart trig				
+				rp_AcqReset();
+				error_code = rp_AcqSetTriggerDelay(trig_delay); 	
+				rp_AcqStart();
+				rp_AcqSetTriggerSrc(trig_source);
+			}
+			else
+			{				
+				if(state == RP_TRIG_STATE_TRIGGERED)
+				{
+					triggered=1;
+					rp_DpinSetState( RP_LED4, RP_HIGH);
+					
+					// Get data
+					read_fpga_data();
+
+					rp_DpinSetState( RP_LED4, RP_LOW);
+					new_data = 1;
+
+					// Do not restart trig					
+				}
+			}
+		}
+		else if(trig_mode == 2) 		
+		{
+			// Force trig
+			trig_mode_init = 0;
+			state = RP_TRIG_STATE_TRIGGERED;
+			rp_AcqReset();
+			error_code = rp_AcqSetTriggerDelay(trig_delay); 				
+			rp_AcqStart();
+			rp_AcqSetTriggerSrc(RP_TRIG_SRC_NOW);
+			usleep(130);
+			trig_mode = 0;
+		}
+		else if(trig_mode == 3) 		
+		{
+			trig_mode_init = 0;
+			// Disable trig
+			rp_AcqSetTriggerSrc(RP_TRIG_SRC_DISABLED);
+		}
+		pthread_mutex_unlock( &mutex1 );
+		
+/*		
 		if(state == RP_TRIG_STATE_TRIGGERED)
 		{
 			usleep(10);
 			
 			pthread_mutex_lock( &mutex1 );
-			
+
 			triggered=1;
 			// Get data
 			rp_DpinSetState( RP_LED4, RP_HIGH);
@@ -432,7 +517,7 @@ void *read_waveform_data(void *arg)
 				}				
 			}
 */
-			
+/*			
 			buff_ch1[0] = (float)record_length;
 			buff_ch1[1] = (float)free_counter;
 			buff_ch2[0] = (float)record_length;
@@ -455,7 +540,7 @@ void *read_waveform_data(void *arg)
 			//printf("Trig pos: %d end %d start %d\n", trig_pos, endpoints, startpoints);
 			
 		}
-			
+*/			
 		// Get FPGA temp
 		rp_HealthGetValue(RP_TEMP_FPGA, &fpga_temp);
 		//printf("FPGA temp: %.01f C\n",fpga_temp);	    
@@ -477,6 +562,103 @@ void *read_waveform_data(void *arg)
 
 }
 
+void read_fpga_data(void)
+{
+		
+	// Read trigger parameters
+	rp_AcqGetWritePointerAtTrig(&trig_pos);						
+	rp_AcqGetTriggerDelay(&decimated_data_num);
+//			printf("Trigger position: %7d\n", trig_pos);
+//			printf("Read trigger delay: %7d\n", decimated_data_num);
+//			printf("Record length: %7d\n", record_length);
+
+//			rp_AcqGetDataPosV(RP_CH_1,0,(RP_BUF_SIZE-1),buff_ch1,&buff_size2);			// Get entire buffer 
+
+	// Calculate end point
+	end_pos = rp_AcqGetNormalizedDataPos(trig_pos + decimated_data_num);
+
+	if (end_pos < record_length - 1) 
+	// The end point goes past the end of the ring buffer:
+	{
+		start_pos = RP_BUF_SIZE + (end_pos - record_length + 1);
+		end_pos = RP_BUF_SIZE - 1;
+		tmpLength = end_pos - start_pos + 1;
+		buff_filled_size = tmpLength;
+		new_ch1_offset = tmpLength;
+		
+		error_code=rp_AcqGetDataPosV(RP_CH_1,start_pos, end_pos, buff_ch1_offset, &buff_filled_size);
+		if (error_code != RP_OK) {
+			printf("Error AcqGetDataPosV out buffer ch1: %7d\n", error_code);
+			printf("start_pos %7d\n", start_pos);
+			printf("end_pos %7d\n", end_pos);
+			printf("tmpLength %7d\n", tmpLength);
+			printf("buff_filled_size %7d\n", buff_filled_size);
+		}
+
+		buff_filled_size = tmpLength;
+		error_code=rp_AcqGetDataPosV(RP_CH_2,start_pos, end_pos, buff_ch2_offset, &buff_filled_size);
+		if (error_code != RP_OK) {
+			printf("Error AcqGetDataPosV out buffer ch2: %7d\n", error_code);
+			printf("start_pos %7d\n", start_pos);
+			printf("end_pos %7d\n", end_pos);
+			printf("tmpLength %7d\n", tmpLength);
+			printf("buff_filled_size %7d\n", buff_filled_size);
+		}
+	
+		end_pos = record_length - tmpLength - 1;
+		start_pos = 0;
+		tmpLength = end_pos - start_pos + 1;
+		buff_filled_size = tmpLength;
+		error_code=rp_AcqGetDataPosV(RP_CH_1, start_pos, end_pos, buff_ch1_offset + new_ch1_offset, &buff_filled_size);
+		if (error_code != RP_OK) {
+			printf("Error AcqGetDataPosV out buffer part2 ch1: %7d\n", error_code);
+			printf("start_pos %7d\n", start_pos);
+			printf("end_pos %7d\n", end_pos);
+			printf("tmpLength %7d\n", tmpLength);
+			printf("buff_filled_size %7d\n", buff_filled_size);
+		}
+		buff_filled_size = tmpLength;
+		error_code=rp_AcqGetDataPosV(RP_CH_2, start_pos, end_pos, buff_ch2_offset + new_ch1_offset, &buff_filled_size);
+		if (error_code != RP_OK) {
+			printf("Error AcqGetDataPosV out buffer part2 ch2: %7d\n", error_code);
+			printf("start_pos %7d\n", start_pos);
+			printf("end_pos %7d\n", end_pos);
+			printf("tmpLength %7d\n", tmpLength);
+			printf("buff_filled_size %7d\n", buff_filled_size);
+		}
+	}
+	else
+	// The waveform is completely within the ring buffer:
+	{
+		start_pos = end_pos - record_length + 1;
+		buff_filled_size = RP_BUF_SIZE;
+		error_code=rp_AcqGetDataPosV(RP_CH_1, start_pos, end_pos, buff_ch1_offset, &buff_filled_size);
+		if (error_code != RP_OK) {
+			printf("Error AcqGetDataPosV in buffer ch1: %7d\n", error_code);
+			printf("start_pos %7d\n", start_pos);
+			printf("end_pos %7d\n", end_pos);
+			printf("buff_filled_size %7d\n", buff_filled_size);
+		}
+		buff_filled_size = RP_BUF_SIZE;
+		error_code=rp_AcqGetDataPosV(RP_CH_2, start_pos, end_pos, buff_ch2_offset, &buff_filled_size);				
+		if (error_code != RP_OK) {
+			printf("Error AcqGetDataPosV in buffer ch2: %7d\n", error_code);
+			printf("start_pos %7d\n", start_pos);
+			printf("end_pos %7d\n", end_pos);
+			printf("buff_filled_size %7d\n", buff_filled_size);
+		}
+	}
+	buff_ch1[0] = (float)record_length;
+	buff_ch1[1] = (float)free_counter;
+	buff_ch2[0] = (float)record_length;
+	buff_ch2[1] = (float)free_counter;
+	
+	free_counter++;
+//			printf("%f %f %f %f %f\n", buff_ch1[1], buff_ch1[2], buff_ch1[3], buff_ch1[4], buff_ch1[5]);
+//			printf("Error code: %7d, buff filled size: %7d\n", error_code, buff_filled_size);
+
+	
+}
 
 void *Read_CT_Data(void *arg)
 {
