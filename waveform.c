@@ -185,14 +185,13 @@ void *read_waveform_data(void *arg)
     float* tmpData;
     
     buff_ch1 = (float*)malloc(buff_size * sizeof(float));
-    tmpData = (float*)malloc(100000*sizeof(float));
     buff_ch2 = (float*)malloc(buff_size * sizeof(float));
   
     // Pointer to first data sample (first position is header with number of samples):
     float* buff_ch1_offset;
 	float* buff_ch2_offset;
-    buff_ch1_offset = buff_ch1 + 2*sizeof(float);
-	buff_ch2_offset = buff_ch2 + 2*sizeof(float);
+    buff_ch1_offset = buff_ch1 + 2;
+	buff_ch2_offset = buff_ch2 + 2;
 	// First two numbers are header: read length and trigger counter
 	uint32_t start_pos;
 	uint32_t end_pos;
@@ -259,8 +258,8 @@ void *read_waveform_data(void *arg)
     free_counter=0;
     heart_beat_state=RP_LOW;
 
+	printf("buff_ch1: %lu\n", (long)buff_ch1);
 	printf("buff_ch1_offset: %lu\n", (long)buff_ch1_offset);
-	printf("buff_ch2_offset: %lu\n", (long)buff_ch2_offset);
 
 	while(fpga_running == true)
 	{
@@ -286,7 +285,81 @@ void *read_waveform_data(void *arg)
 
 //			rp_AcqGetDataPosV(RP_CH_1,0,(RP_BUF_SIZE-1),buff_ch1,&buff_size2);			// Get entire buffer 
 
+			// Calculate end point
+			end_pos = rp_AcqGetNormalizedDataPos(trig_pos + decimated_data_num);
+
+			if (end_pos < record_length - 1) 
+			// The end point goes past the end of the ring buffer:
+			{
+				start_pos = RP_BUF_SIZE + (end_pos - record_length + 1);
+				end_pos = RP_BUF_SIZE - 1;
+				tmpLength = end_pos - start_pos + 1;
+				buff_filled_size = tmpLength;
+				new_ch1_offset = tmpLength;
+				
+				error_code=rp_AcqGetDataPosV(RP_CH_1,start_pos, end_pos, buff_ch1_offset, &buff_filled_size);
+				if (error_code != RP_OK) {
+					printf("Error AcqGetDataPosV out buffer ch1: %7d\n", error_code);
+					printf("start_pos %7d\n", start_pos);
+					printf("end_pos %7d\n", end_pos);
+					printf("tmpLength %7d\n", tmpLength);
+					printf("buff_filled_size %7d\n", buff_filled_size);
+				}
+
+				buff_filled_size = tmpLength;
+				error_code=rp_AcqGetDataPosV(RP_CH_2,start_pos, end_pos, buff_ch2_offset, &buff_filled_size);
+				if (error_code != RP_OK) {
+					printf("Error AcqGetDataPosV out buffer ch2: %7d\n", error_code);
+					printf("start_pos %7d\n", start_pos);
+					printf("end_pos %7d\n", end_pos);
+					printf("tmpLength %7d\n", tmpLength);
+					printf("buff_filled_size %7d\n", buff_filled_size);
+				}
 			
+				end_pos = record_length - tmpLength - 1;
+				start_pos = 0;
+				tmpLength = end_pos - start_pos + 1;
+				buff_filled_size = tmpLength;
+				error_code=rp_AcqGetDataPosV(RP_CH_1, start_pos, end_pos, buff_ch1_offset + new_ch1_offset, &buff_filled_size);
+				if (error_code != RP_OK) {
+					printf("Error AcqGetDataPosV out buffer part2 ch1: %7d\n", error_code);
+					printf("start_pos %7d\n", start_pos);
+					printf("end_pos %7d\n", end_pos);
+					printf("tmpLength %7d\n", tmpLength);
+					printf("buff_filled_size %7d\n", buff_filled_size);
+				}
+				buff_filled_size = tmpLength;
+				error_code=rp_AcqGetDataPosV(RP_CH_2, start_pos, end_pos, buff_ch2_offset + new_ch1_offset, &buff_filled_size);
+				if (error_code != RP_OK) {
+					printf("Error AcqGetDataPosV out buffer part2 ch2: %7d\n", error_code);
+					printf("start_pos %7d\n", start_pos);
+					printf("end_pos %7d\n", end_pos);
+					printf("tmpLength %7d\n", tmpLength);
+					printf("buff_filled_size %7d\n", buff_filled_size);
+				}
+			}
+			else
+			// The waveform is completely within the ring buffer:
+			{
+				start_pos = end_pos - record_length + 1;
+				buff_filled_size = RP_BUF_SIZE;
+				error_code=rp_AcqGetDataPosV(RP_CH_1, start_pos, end_pos, buff_ch1_offset, &buff_filled_size);
+				if (error_code != RP_OK) {
+					printf("Error AcqGetDataPosV in buffer ch1: %7d\n", error_code);
+					printf("start_pos %7d\n", start_pos);
+					printf("end_pos %7d\n", end_pos);
+					printf("buff_filled_size %7d\n", buff_filled_size);
+				}
+				buff_filled_size = RP_BUF_SIZE;
+				error_code=rp_AcqGetDataPosV(RP_CH_2, start_pos, end_pos, buff_ch2_offset, &buff_filled_size);				
+				if (error_code != RP_OK) {
+					printf("Error AcqGetDataPosV in buffer ch2: %7d\n", error_code);
+					printf("start_pos %7d\n", start_pos);
+					printf("end_pos %7d\n", end_pos);
+					printf("buff_filled_size %7d\n", buff_filled_size);
+				}
+			}
+/*			
 			// Calculate end point
 			end_pos = trig_pos + decimated_data_num;
 			
@@ -358,7 +431,7 @@ void *read_waveform_data(void *arg)
 					error_code=rp_AcqGetDataPosV(RP_CH_2, start_pos, end_pos, buff_ch2_offset, &buff_filled_size);
 				}				
 			}
-
+*/
 			
 			buff_ch1[0] = (float)record_length;
 			buff_ch1[1] = (float)free_counter;
@@ -394,7 +467,6 @@ void *read_waveform_data(void *arg)
 
 	free(buff_ch1);
 	free(buff_ch2);
-	free(tmpData);
 	printf("free");
 	rp_Release();
 	printf("release");
