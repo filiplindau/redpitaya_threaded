@@ -12,12 +12,14 @@
 #include <pthread.h>
 #include "rp.h"
 
+#define RP_BUF_SIZE	16384
   
 int listenfd = 0, connfd = 0;
 struct sockaddr_in serv_addr; 
 char sendBuff[1000];
 char client_message[2000];
 char *sString;
+char *dataBuffer;
 
 extern int triggered;
 extern int free_counter;
@@ -137,6 +139,8 @@ void *Process_Incoming_Commands(void *arg)
     float arg_f;
     int errCode;
     rp_acq_decimation_t decimation;
+    
+    dataBuffer = (char*)malloc((RP_BUF_SIZE + 4) * sizeof(float));
     
     //Receive a message from client
     while ((size=recv(connfd , client_message , 2000 , 0))>0)
@@ -374,9 +378,6 @@ void *Process_Incoming_Commands(void *arg)
 				break;
 		}
 
-	    // Todo, stop ct, return measurements
-	    // size=sprintf(str,"%.01f",fpga_temp);
-	    // write(connfd,str,size);
 	}
 	else if (strcmp(command,"getWaveformFloat")==0)
 	{
@@ -414,9 +415,28 @@ void *Process_Incoming_Commands(void *arg)
 				break;
 		}
 
-	    // Todo, stop ct, return measurements
-	    // size=sprintf(str,"%.01f",fpga_temp);
-	    // write(connfd,str,size);
+	}
+	else if (strcmp(command,"getWaveformsFloat")==0)
+	{
+//		printf("getWaveformsFloat");
+		pthread_mutex_lock( &mutex1 );
+		if (new_data == 1) 
+		{
+			new_data = 0;
+			size = (buff_ch1[0] + 2)*sizeof(float);
+			memcpy(dataBuffer, buff_ch1, size);
+			memcpy(dataBuffer+size, buff_ch2, size);
+			// Need to send record_length+2 words because the first word is the header
+			// containing the number of words, second is trig counter
+			write(connfd, dataBuffer , 2*size);
+
+		}
+		else 
+		{
+			write(connfd, "not triggered" , 13);
+		}
+		pthread_mutex_unlock( &mutex1 );
+
 	}
 	else if (strcmp(command,"stopCT")==0)
 	{
@@ -442,6 +462,7 @@ void *Process_Incoming_Commands(void *arg)
     fflush(stdout);
     close(connfd);
     pthread_mutex_unlock( &mutex1 );
+    free(dataBuffer);
     return NULL;
     
 }
