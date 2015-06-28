@@ -405,6 +405,255 @@ void *Process_Incoming_Commands(void *arg)
 	    // size=sprintf(str,"%.01f",fpga_temp);
 	    // write(connfd,str,size);
 	}
+	else if (strcmp(command,"genOutEnable")==0)
+	{
+		channel = atoi(cmdData);
+		if (channel == 1)
+		{
+			errCode = rp_GenOutEnable(RP_CH_1);
+		}
+		else
+		{
+			errCode = rp_GenOutEnable(RP_CH_2);
+		}
+		if (errCode != RP_OK)
+		{
+			printf("Error genOutEnable: %7d\n", errCode);
+		}
+	}	
+	else if (strcmp(command,"genOutDisable")==0)
+	{
+		channel = atoi(cmdData);
+		if (channel == 1)
+		{
+			errCode = rp_GenOutDisable(RP_CH_1);
+		}
+		else
+		{
+			errCode = rp_GenOutDisable(RP_CH_2);
+		}
+		if (errCode != RP_OK)
+		{
+			printf("Error genOutDisable: %7d\n", errCode);
+		}
+	}	
+	else if (strcmp(command,"genFreqCh1")==0)
+	{
+		arg_f = atof(cmdData);
+		errCode = rp_GenFreq(RP_CH_1, arg_f);
+		if (errCode != RP_OK)
+		{
+			printf("Error genFreq channel 1: %7d\n", errCode);
+		}
+	}	
+	else if (strcmp(command,"genFreqCh2")==0)
+	{
+		arg_f = atof(cmdData);
+		errCode = rp_GenFreq(RP_CH_2, arg_f);
+		if (errCode != RP_OK)
+		{
+			printf("Error genFreq channel 2: %7d\n", errCode);
+		}
+	}
+	else if (strcmp(command,"genModeCh1")==0)
+	{
+		if (strcmp(cmdData,"RP_GEN_MODE_BURST")==0)
+		{
+			errCode = rp_GenMode(RP_CH_1, RP_GEN_MODE_BURST);
+		}
+		else if (strcmp(cmdData,"RP_GEN_MODE_STREAM")==0)
+		{
+			errCode = rp_GenMode(RP_CH_1, RP_GEN_MODE_STREAM);
+		}
+		else 
+		{
+			errCode = rp_GenMode(RP_CH_1, RP_GEN_MODE_CONTINUOUS);
+		}
+		if (errCode != RP_OK)
+		{
+			printf("Error genMode channel 1: %7d\n", errCode);
+		}
+	}
+	else if (strcmp(command,"genModeCh2")==0)
+	{
+		if (strcmp(cmdData,"RP_GEN_MODE_BURST")==0)
+		{
+			errCode = rp_GenMode(RP_CH_2, RP_GEN_MODE_BURST);
+		}
+		else if (strcmp(cmdData,"RP_GEN_MODE_STREAM")==0)
+		{
+			errCode = rp_GenMode(RP_CH_2, RP_GEN_MODE_STREAM);
+		}
+		else 
+		{
+			errCode = rp_GenMode(RP_CH_2, RP_GEN_MODE_CONTINUOUS);
+		}
+		if (errCode != RP_OK)
+		{
+			printf("Error genMode channel 2: %7d\n", errCode);
+		}
+	}
+	else if (strcmp(command,"genWaveformCh1")==0)
+	{
+		if (strcmp(cmdData,"RP_WAVEFORM_SINE")==0)
+		{
+			errCode = rp_GenWaveform(RP_CH_1, RP_WAVEFORM_SINE);
+		}
+		else if (strcmp(cmdData,"RP_WAVEFORM_SQUARE")==0)
+		{
+			errCode = rp_GenWaveform(RP_CH_1, RP_WAVEFORM_SQUARE);
+		}
+		else if (strcmp(cmdData,"RP_WAVEFORM_TRIANGLE")==0)
+		{
+			errCode = rp_GenWaveform(RP_CH_1, RP_WAVEFORM_TRIANGLE);
+		}
+		else if (strcmp(cmdData,"RP_WAVEFORM_RAMP_UP")==0)
+		{
+			errCode = rp_GenWaveform(RP_CH_1, RP_WAVEFORM_RAMP_UP);
+		}
+		else if (strcmp(cmdData,"RP_WAVEFORM_RAMP_DOWN")==0)
+		{
+			errCode = rp_GenWaveform(RP_CH_1, RP_WAVEFORM_RAMP_DOWN);
+		}
+		else if (strcmp(cmdData,"RP_WAVEFORM_DC")==0)
+		{
+			errCode = rp_GenWaveform(RP_CH_1, RP_WAVEFORM_DC);
+		}
+		else if (strcmp(cmdData,"RP_WAVEFORM_PWM")==0)
+		{
+			errCode = rp_GenWaveform(RP_CH_1, RP_WAVEFORM_PWM);
+		}
+		else if (strcmp(cmdData,"RP_WAVEFORM_ARBITRARY")==0)
+		{
+			errCode = rp_GenWaveform(RP_CH_1, RP_WAVEFORM_ARBITRARY);
+		}
+		if (errCode != RP_OK)
+		{
+			printf("Error genWaveformCh1 channel 1: %7d\n", errCode);
+		}
+	}
+	else if (strcmp(command,"genWaveformCh2")==0)
+	{
+		if (strcmp(cmdData,"RP_WAVEFORM_SINE")==0)
+		{
+			errCode = rp_GenWaveform(RP_CH_2, RP_WAVEFORM_SINE);
+		}
+		else if (strcmp(cmdData,"RP_WAVEFORM_SQUARE")==0)
+		{
+			errCode = rp_GenWaveform(RP_CH_2, RP_WAVEFORM_SQUARE);
+		}
+		else if (strcmp(cmdData,"RP_WAVEFORM_TRIANGLE")==0)
+		{
+			errCode = rp_GenWaveform(RP_CH_2, RP_WAVEFORM_TRIANGLE);
+		}
+		else if (strcmp(cmdData,"RP_WAVEFORM_RAMP_UP")==0)
+		{
+			errCode = rp_GenWaveform(RP_CH_2, RP_WAVEFORM_RAMP_UP);
+		}
+		else if (strcmp(cmdData,"RP_WAVEFORM_RAMP_DOWN")==0)
+		{
+			errCode = rp_GenWaveform(RP_CH_2, RP_WAVEFORM_RAMP_DOWN);
+		}
+		else if (strcmp(cmdData,"RP_WAVEFORM_DC")==0)
+		{
+			errCode = rp_GenWaveform(RP_CH_2, RP_WAVEFORM_DC);
+		}
+		else if (strcmp(cmdData,"RP_WAVEFORM_PWM")==0)
+		{
+			errCode = rp_GenWaveform(RP_CH_2, RP_WAVEFORM_PWM);
+		}
+		else if (strcmp(cmdData,"RP_WAVEFORM_ARBITRARY")==0)
+		{
+			errCode = rp_GenWaveform(RP_CH_2, RP_WAVEFORM_ARBITRARY);
+		}
+		if (errCode != RP_OK)
+		{
+			printf("Error genWaveformCh1 channel 2: %7d\n", errCode);
+		}
+	}
+	else if (strcmp(command,"genAmpCh1")==0)
+	{
+		arg_f = atof(cmdData);
+		errCode = rp_GenAmp(RP_CH_1, arg_f);
+		if (errCode != RP_OK)
+		{
+			printf("Error genAmp channel 1: %7d\n", errCode);
+		}
+	}	
+	else if (strcmp(command,"genAmpCh2")==0)
+	{
+		arg_f = atof(cmdData);
+		errCode = rp_GenAmp(RP_CH_2, arg_f);
+		if (errCode != RP_OK)
+		{
+			printf("Error genAmp channel 2: %7d\n", errCode);
+		}
+	}	
+	else if (strcmp(command,"genTrigger")==0)
+	{
+		if (strcmp(cmdData,"RP_CH_1")==0)
+		{
+			errCode = rp_GenTrigger(1);
+		}
+		else if (strcmp(cmdData,"RP_CH_2")==0)
+		{
+			errCode = rp_GenTrigger(2);
+		}
+		else
+		{
+			errCode = rp_GenTrigger(3);
+		}
+		if (errCode != RP_OK)
+		{
+			printf("Error genTrigger: %7d\n", errCode);
+		}
+	}	
+	else if (strcmp(command,"genTriggerSourceCh1")==0)
+	{
+		if (strcmp(cmdData,"RP_GEN_TRIG_SRC_INTERNAL")==0)
+		{
+			errCode = rp_GenTriggerSource(RP_CH_1, RP_GEN_TRIG_SRC_INTERNAL);
+		}
+		else if (strcmp(cmdData,"RP_GEN_TRIG_SRC_EXT_PE")==0)
+		{
+			errCode = rp_GenTriggerSource(RP_CH_1, RP_GEN_TRIG_SRC_EXT_PE);
+		}
+		else if (strcmp(cmdData,"RP_GEN_TRIG_SRC_EXT_NE")==0)
+		{
+			errCode = rp_GenTriggerSource(RP_CH_1, RP_GEN_TRIG_SRC_EXT_NE);
+		}
+		else
+		{
+			errCode = rp_GenTriggerSource(RP_CH_1, RP_GEN_TRIG_GATED_BURST);
+		}
+		if (errCode != RP_OK)
+		{
+			printf("Error genTriggerSourceCh1: %7d\n", errCode);
+		}
+	}	
+	else if (strcmp(command,"genTriggerSourceCh2")==0)
+	{
+		if (strcmp(cmdData,"RP_GEN_TRIG_SRC_INTERNAL")==0)
+		{
+			errCode = rp_GenTriggerSource(RP_CH_2, RP_GEN_TRIG_SRC_INTERNAL);
+		}
+		else if (strcmp(cmdData,"RP_GEN_TRIG_SRC_EXT_PE")==0)
+		{
+			errCode = rp_GenTriggerSource(RP_CH_2, RP_GEN_TRIG_SRC_EXT_PE);
+		}
+		else if (strcmp(cmdData,"RP_GEN_TRIG_SRC_EXT_NE")==0)
+		{
+			errCode = rp_GenTriggerSource(RP_CH_2, RP_GEN_TRIG_SRC_EXT_NE);
+		}
+		else
+		{
+			errCode = rp_GenTriggerSource(RP_CH_2, RP_GEN_TRIG_GATED_BURST);
+		}
+		if (errCode != RP_OK)
+		{
+			printf("Error genTriggerSourceCh2: %7d\n", errCode);
+		}
+	}	
 	else if (strcmp(command,"stopCT")==0)
 	{
 	    // Todo, stop ct

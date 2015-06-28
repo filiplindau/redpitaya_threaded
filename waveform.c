@@ -103,6 +103,7 @@ float integrated_charge(float *signal, int start, int sig_len)
 
 void setup_output()
 {
+	rp_GenReset();
     /* Generating frequency */
     rp_GenFreq(RP_CH_2, 0.0);
 
