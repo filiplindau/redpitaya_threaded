@@ -419,6 +419,14 @@ void *Process_Incoming_Commands(void *arg)
 		if (errCode != RP_OK)
 		{
 			printf("Error genOutEnable: %7d\n", errCode);
+			size=sprintf(str,"Error %d", errCode);
+		    write(connfd,str,size);
+		}
+		else
+		{
+			printf("genOutEnable");
+			size=sprintf(str,"OK");
+		    write(connfd,str,size);
 		}
 	}	
 	else if (strcmp(command,"genOutDisable")==0)
@@ -435,6 +443,14 @@ void *Process_Incoming_Commands(void *arg)
 		if (errCode != RP_OK)
 		{
 			printf("Error genOutDisable: %7d\n", errCode);
+			size=sprintf(str,"Error %d", errCode);
+		    write(connfd,str,size);
+		}
+		else
+		{
+			printf("genOutDisable");
+			size=sprintf(str,"OK");
+		    write(connfd,str,size);
 		}
 	}	
 	else if (strcmp(command,"genFreqCh1")==0)
@@ -444,6 +460,14 @@ void *Process_Incoming_Commands(void *arg)
 		if (errCode != RP_OK)
 		{
 			printf("Error genFreq channel 1: %7d\n", errCode);
+			size=sprintf(str,"Error %d", errCode);
+		    write(connfd,str,size);
+		}
+		else
+		{
+			printf("genFreqCh1");
+			size=sprintf(str,"OK");
+		    write(connfd,str,size);
 		}
 	}	
 	else if (strcmp(command,"genFreqCh2")==0)
@@ -453,6 +477,14 @@ void *Process_Incoming_Commands(void *arg)
 		if (errCode != RP_OK)
 		{
 			printf("Error genFreq channel 2: %7d\n", errCode);
+			size=sprintf(str,"Error %d", errCode);
+		    write(connfd,str,size);
+		}
+		else
+		{
+			printf("genFreqCh2");
+			size=sprintf(str,"OK");
+		    write(connfd,str,size);
 		}
 	}
 	else if (strcmp(command,"genModeCh1")==0)
@@ -472,6 +504,14 @@ void *Process_Incoming_Commands(void *arg)
 		if (errCode != RP_OK)
 		{
 			printf("Error genMode channel 1: %7d\n", errCode);
+			size=sprintf(str,"Error %d", errCode);
+		    write(connfd,str,size);
+		}
+		else
+		{
+			printf("genModeCh1");
+			size=sprintf(str,"OK");
+		    write(connfd,str,size);
 		}
 	}
 	else if (strcmp(command,"genModeCh2")==0)
@@ -491,6 +531,14 @@ void *Process_Incoming_Commands(void *arg)
 		if (errCode != RP_OK)
 		{
 			printf("Error genMode channel 2: %7d\n", errCode);
+			size=sprintf(str,"Error %d", errCode);
+		    write(connfd,str,size);
+		}
+		else
+		{
+			printf("genModeCh2");
+			size=sprintf(str,"OK");
+		    write(connfd,str,size);
 		}
 	}
 	else if (strcmp(command,"genWaveformCh1")==0)
@@ -530,6 +578,14 @@ void *Process_Incoming_Commands(void *arg)
 		if (errCode != RP_OK)
 		{
 			printf("Error genWaveformCh1 channel 1: %7d\n", errCode);
+			size=sprintf(str,"Error %d", errCode);
+		    write(connfd,str,size);
+		}
+		else
+		{
+			printf("genWaveformCh1");
+			size=sprintf(str,"OK");
+		    write(connfd,str,size);
 		}
 	}
 	else if (strcmp(command,"genWaveformCh2")==0)
@@ -569,6 +625,14 @@ void *Process_Incoming_Commands(void *arg)
 		if (errCode != RP_OK)
 		{
 			printf("Error genWaveformCh1 channel 2: %7d\n", errCode);
+			size=sprintf(str,"Error %d", errCode);
+		    write(connfd,str,size);
+		}
+		else
+		{
+			printf("genWaveformCh2");
+			size=sprintf(str,"OK");
+		    write(connfd,str,size);
 		}
 	}
 	else if (strcmp(command,"genAmpCh1")==0)
@@ -578,6 +642,14 @@ void *Process_Incoming_Commands(void *arg)
 		if (errCode != RP_OK)
 		{
 			printf("Error genAmp channel 1: %7d\n", errCode);
+			size=sprintf(str,"Error %d", errCode);
+		    write(connfd,str,size);
+		}
+		else
+		{
+			printf("genAmpCh1");
+			size=sprintf(str,"OK");
+		    write(connfd,str,size);
 		}
 	}	
 	else if (strcmp(command,"genAmpCh2")==0)
@@ -587,6 +659,14 @@ void *Process_Incoming_Commands(void *arg)
 		if (errCode != RP_OK)
 		{
 			printf("Error genAmp channel 2: %7d\n", errCode);
+			size=sprintf(str,"Error %d", errCode);
+		    write(connfd,str,size);
+		}
+		else
+		{
+			printf("genAmpCh2");
+			size=sprintf(str,"OK");
+		    write(connfd,str,size);
 		}
 	}	
 	else if (strcmp(command,"genTrigger")==0)
@@ -606,6 +686,14 @@ void *Process_Incoming_Commands(void *arg)
 		if (errCode != RP_OK)
 		{
 			printf("Error genTrigger: %7d\n", errCode);
+			size=sprintf(str,"Error %d", errCode);
+		    write(connfd,str,size);
+		}
+		else
+		{
+			printf("genTrigger");
+			size=sprintf(str,"OK");
+		    write(connfd,str,size);
 		}
 	}	
 	else if (strcmp(command,"genTriggerSourceCh1")==0)
@@ -629,6 +717,14 @@ void *Process_Incoming_Commands(void *arg)
 		if (errCode != RP_OK)
 		{
 			printf("Error genTriggerSourceCh1: %7d\n", errCode);
+			size=sprintf(str,"Error %d", errCode);
+		    write(connfd,str,size);
+		}
+		else
+		{
+			printf("genTriggerSourceCh1");
+			size=sprintf(str,"OK");
+		    write(connfd,str,size);
 		}
 	}	
 	else if (strcmp(command,"genTriggerSourceCh2")==0)
@@ -652,6 +748,14 @@ void *Process_Incoming_Commands(void *arg)
 		if (errCode != RP_OK)
 		{
 			printf("Error genTriggerSourceCh2: %7d\n", errCode);
+			size=sprintf(str,"Error %d", errCode);
+		    write(connfd,str,size);
+		}
+		else
+		{
+			printf("genTrigerSourceCh2");
+			size=sprintf(str,"OK");
+		    write(connfd,str,size);
 		}
 	}	
 	else if (strcmp(command,"stopCT")==0)
