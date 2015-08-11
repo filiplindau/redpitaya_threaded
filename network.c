@@ -418,14 +418,15 @@ void *Process_Incoming_Commands(void *arg)
 	}
 	else if (strcmp(command,"getWaveformsFloat")==0)
 	{
-//		printf("getWaveformsFloat");
-		pthread_mutex_lock( &mutex1 );
+//		printf("getWaveformsFloat");		
 		if (new_data == 1) 
 		{
 			new_data = 0;
+			pthread_mutex_lock( &mutex1 );
 			size = (buff_ch1[0] + 2)*sizeof(float);
 			memcpy(dataBuffer, buff_ch1, size);
 			memcpy(dataBuffer+size, buff_ch2, size);
+			pthread_mutex_unlock( &mutex1 );
 			// Need to send record_length+2 words because the first word is the header
 			// containing the number of words, second is trig counter
 			write(connfd, dataBuffer , 2*size);
@@ -434,8 +435,7 @@ void *Process_Incoming_Commands(void *arg)
 		else 
 		{
 			write(connfd, "not triggered" , 13);
-		}
-		pthread_mutex_unlock( &mutex1 );
+		}		
 
 	}
 	else if (strcmp(command,"stopCT")==0)
@@ -461,8 +461,24 @@ void *Process_Incoming_Commands(void *arg)
     printf("Client disconnected\n");
     fflush(stdout);
     close(connfd);
-    pthread_mutex_unlock( &mutex1 );
+    int m_error;
+    printf("Mutex unlocking\n");
+    m_error = pthread_mutex_trylock( &mutex1 );
+    if(m_error == 0)
+    {
+		pthread_mutex_unlock( &mutex1 );
+	}
+	else if(m_error == EBUSY)
+	{
+		m_error = pthread_mutex_unlock( &mutex1 );
+		if(m_error == EPERM)
+		{
+			printf("Error unlocking mutex, other thread owns it.\n");
+		}
+	}
+	printf("Mutex unlocked\n");
     free(dataBuffer);
+    printf("dataBuffer free\n");
     return NULL;
     
 }
